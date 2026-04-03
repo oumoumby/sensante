@@ -1,0 +1,9 @@
+__pycache___/
+*.pyc
+venv/
+.env
+models/*.pkl
+.DS.Store
+Thumbs.db
+.vscode/
+.idea/

@@ -132,7 +132,8 @@ print(f"Modele recharge : {type(model_loaded).__name__}")
 print(f"Classes : {list(model_loaded.classes_)}")
 
 # Un nouveau patient arrive au centre de sante de Medina
-nouveau_patient = {
+nouveaux_patients = [
+    {
     'age': 28,
     'sexe': 'F',
     'temperature': 39.5,
@@ -141,34 +142,80 @@ nouveau_patient = {
     'fatigue': True,
     'maux_tete': True,
     'region': 'Dakar'
-}
+    },
+    {
+        'age': 17,
+        'sexe': 'M',
+        'temperature': 36,
+        'tension_sys': 115,
+        'toux': False,
+        'fatigue': False,
+        'maux_tete': False,
+        'region': 'Thiès'
+    },
+    {
+    'age': 32,
+    'sexe': 'F',
+    'temperature': 39,
+    'tension_sys': 120,
+    'toux': False,
+    'fatigue': False,
+    'maux_tete': True,
+    'region': 'Saint-Louis'
 
-# Encoder les valeurs categoriques
-sexe_enc = le_sexe_loaded.transform([nouveau_patient['sexe']])[0]
-region_enc = le_region_loaded.transform([nouveau_patient['region']])[0]
-
-# Preparer le vecteur de features
-features = [
-    nouveau_patient['age'],
-    sexe_enc,
-    nouveau_patient['temperature'],
-    nouveau_patient['tension_sys'],
-    int(nouveau_patient['toux']),
-    int(nouveau_patient['fatigue']),
-    int(nouveau_patient['maux_tete']),
-    region_enc
+    },
+    {
+     'age': 65,
+    'sexe': 'M',
+    'temperature': 38,
+    'tension_sys': 125,
+    'toux': True,
+    'fatigue': False,
+    'maux_tete': False,
+    'region': 'Dakar'
+    }
 ]
 
-# Predire
-diagnostic = model_loaded.predict([features])[0]
-probas = model_loaded.predict_proba([features])[0]
-proba_max = probas.max()
 
-print(f"\n--- Resultat du pre-diagnostic ---")
-print(f"Patient : {nouveau_patient['sexe']}, {nouveau_patient['age']} ans")
-print(f"Diagnostic : {diagnostic}")
-print(f"Probabilite : {proba_max:.1%}")
-print(f"\nProbabilites par classe :")
-for classe, proba in zip(model_loaded.classes_, probas):
-    bar = '#' * int(proba * 30)
-    print(f"{classe:8s} : {proba:.1%} {bar}")
+# On boucle sur chaque patient pour faire les prédictions
+for patient in nouveaux_patients:
+    # Encoder les valeurs categoriques
+    sexe_enc = le_sexe_loaded.transform([patient['sexe']])[0]
+    region_enc = le_region_loaded.transform([patient['region']])[0]
+
+    # Preparer le vecteur de features
+    features = [
+        patient['age'],
+        sexe_enc,
+        patient['temperature'],
+        patient['tension_sys'],
+        int(patient['toux']),
+        int(patient['fatigue']),
+        int(patient['maux_tete']),
+        region_enc
+    ]
+
+    # Predire
+    diagnostic = model_loaded.predict([features])[0]
+    probas = model_loaded.predict_proba([features])[0]
+    proba_max = probas.max()
+
+    print(f"\n--- Resultat du pre-diagnostic ---")
+    print(f"Patient : {patient['sexe']}, {patient['age']} ans, {patient['region']}")
+    print(f"Diagnostic : {diagnostic}")
+    print(f"Probabilite : {proba_max:.1%}")
+    print(f"\nProbabilites par classe :")
+    for classe, proba in zip(model_loaded.classes_, probas):
+        bar = '#' * int(proba * 30)
+        print(f"{classe:8s} : {proba:.1%} {bar}")
+
+
+
+# Feature importances
+print("\n--- Feature Importances ---")
+importances = model.feature_importances_
+for name, imp in sorted(zip(feature_cols, importances),
+                        key=lambda x: x[1], reverse=True):
+    print(f"{name:20s}: {imp:.3f}")
+
+
